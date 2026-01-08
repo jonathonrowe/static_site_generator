@@ -1,5 +1,5 @@
 import unittest
-from node_delimiter import split_nodes_delimiter
+from node_delimiter import split_nodes_delimiter, split_nodes_image, split_nodes_link
 from textnode import TextType, TextNode
 
 class TestSplitNodeDelimiter(unittest.TestCase):
@@ -132,3 +132,79 @@ class TestSplitNodeDelimiter(unittest.TestCase):
             split_nodes_delimiter([node2], "_", TextType.ITALIC)
         with self.assertRaises(Exception):
             split_nodes_delimiter([node3], "`", TextType.CODE)
+
+class TestSplitNodeImage(unittest.TestCase):
+    def test_split_images(self):
+        node = TextNode(
+            "This is text with an ![image](https://i.imgur.com/zjjcJKZ.png) and another ![second image](https://i.imgur.com/3elNhQu.png)",
+            TextType.TEXT,
+        )
+        node2 = TextNode(
+            "![image](https://i.imgur.com/zjjcJKZ.png) and another ![second image](https://i.imgur.com/3elNhQu.png) end",
+            TextType.TEXT
+        )
+        node3 = TextNode("This is text without an image", TextType.TEXT)
+        node4 = TextNode(
+            "![image](https://i.imgur.com/zjjcJKZ.png) and another ![second image](https://i.imgur.com/3elNhQu.png)",
+            TextType.TEXT
+        )
+        new_nodes = split_nodes_image([node])
+        new_nodes2 = split_nodes_image([node2])
+        new_nodes3 = split_nodes_image([node, node2])
+        new_nodes4 = split_nodes_image([node3])
+        new_nodes5 = split_nodes_image([node4])
+        self.assertListEqual(
+            [
+                TextNode("This is text with an ", TextType.TEXT),
+                TextNode("image", TextType.IMAGE, "https://i.imgur.com/zjjcJKZ.png"),
+                TextNode(" and another ", TextType.TEXT),
+                TextNode(
+                    "second image", TextType.IMAGE, "https://i.imgur.com/3elNhQu.png"
+                ),
+            ],
+            new_nodes,
+        )
+        self.assertListEqual(
+            [
+                TextNode("image", TextType.IMAGE, "https://i.imgur.com/zjjcJKZ.png"),
+                TextNode(" and another ", TextType.TEXT),
+                TextNode(
+                    "second image", TextType.IMAGE, "https://i.imgur.com/3elNhQu.png"
+                ),
+                TextNode(" end", TextType.TEXT)
+            ],
+            new_nodes2
+        )
+        self.assertListEqual(
+            [
+                TextNode("This is text with an ", TextType.TEXT),
+                TextNode("image", TextType.IMAGE, "https://i.imgur.com/zjjcJKZ.png"),
+                TextNode(" and another ", TextType.TEXT),
+                TextNode(
+                    "second image", TextType.IMAGE, "https://i.imgur.com/3elNhQu.png"
+                ),
+                TextNode("image", TextType.IMAGE, "https://i.imgur.com/zjjcJKZ.png"),
+                TextNode(" and another ", TextType.TEXT),
+                TextNode(
+                    "second image", TextType.IMAGE, "https://i.imgur.com/3elNhQu.png"
+                ),
+                TextNode(" end", TextType.TEXT)
+            ],
+            new_nodes3
+        )
+        self.assertListEqual(
+            [
+                TextNode("This is text without an image", TextType.TEXT)
+            ],
+            new_nodes4
+        )
+        self.assertListEqual(
+            [
+                TextNode("image", TextType.IMAGE, "https://i.imgur.com/zjjcJKZ.png"),
+                TextNode(" and another ", TextType.TEXT),
+                TextNode(
+                    "second image", TextType.IMAGE, "https://i.imgur.com/3elNhQu.png"
+                ), 
+            ],
+            new_nodes5
+        )
