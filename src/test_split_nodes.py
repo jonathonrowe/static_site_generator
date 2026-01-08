@@ -1,5 +1,5 @@
 import unittest
-from node_delimiter import split_nodes_delimiter, split_nodes_image, split_nodes_link
+from split_nodes import split_nodes_delimiter, split_nodes_image, split_nodes_link
 from textnode import TextType, TextNode
 
 class TestSplitNodeDelimiter(unittest.TestCase):
@@ -207,4 +207,74 @@ class TestSplitNodeImage(unittest.TestCase):
                 ), 
             ],
             new_nodes5
+        )
+
+class SplitNodeLink(unittest.TestCase):
+    def test_split_link(self):
+        node = TextNode(
+            "This is text with a link [to boot dev](https://www.boot.dev) and [to youtube](https://www.youtube.com/@bootdotdev)",
+            TextType.TEXT,
+            )
+        node2 = TextNode(
+            "This is text with a link [to boot dev](https://www.boot.dev) website",
+            TextType.TEXT,
+        )
+        node3 = TextNode("[to boot dev](https://www.boot.dev) website", TextType.TEXT)
+        node4 = TextNode(
+            "This is text with a link [to boot dev](https://www.boot.dev)",
+            TextType.TEXT,
+        )
+        node5 = TextNode("This is text without a link", TextType.TEXT)
+        new_nodes = split_nodes_link([node])
+        new_nodes2 = split_nodes_link([node2])
+        new_nodes3 = split_nodes_link([node3])
+        new_nodes4 = split_nodes_link([node4])
+        new_nodes5 = split_nodes_link([node5])
+        new_nodes6 = split_nodes_link([node, node2])
+        self.assertListEqual(
+            [
+                TextNode("This is text with a link ", TextType.TEXT),
+                TextNode("to boot dev", TextType.LINK, "https://www.boot.dev"),
+                TextNode(" and ", TextType.TEXT),
+                TextNode("to youtube", TextType.LINK, "https://www.youtube.com/@bootdotdev")
+            ],
+            new_nodes
+        )
+        self.assertListEqual(
+            [
+                TextNode("This is text with a link ", TextType.TEXT),
+                TextNode("to boot dev", TextType.LINK, "https://www.boot.dev"),
+                TextNode(" website", TextType.TEXT)
+            ],
+            new_nodes2
+        )
+        self.assertListEqual(
+            [
+                TextNode("to boot dev", TextType.LINK, "https://www.boot.dev"),
+                TextNode(" website", TextType.TEXT),
+            ],
+            new_nodes3
+        )
+        self.assertListEqual(
+            [
+                TextNode("This is text with a link ", TextType.TEXT),
+                TextNode("to boot dev", TextType.LINK, "https://www.boot.dev"),
+            ],
+            new_nodes4
+        )
+        self.assertListEqual(
+            [TextNode("This is text without a link", TextType.TEXT)],
+            new_nodes5
+        )
+        self.assertListEqual(
+            [
+                TextNode("This is text with a link ", TextType.TEXT),
+                TextNode("to boot dev", TextType.LINK, "https://www.boot.dev"),
+                TextNode(" and ", TextType.TEXT),
+                TextNode("to youtube", TextType.LINK, "https://www.youtube.com/@bootdotdev"),
+                TextNode("This is text with a link ", TextType.TEXT),
+                TextNode("to boot dev", TextType.LINK, "https://www.boot.dev"),
+                TextNode(" website", TextType.TEXT),
+            ],
+            new_nodes6
         )
