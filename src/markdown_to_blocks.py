@@ -1,4 +1,5 @@
 from enum import Enum
+import re
 
 class BlockType(Enum):
     PARAGRAPH = "paragraph"
@@ -9,38 +10,55 @@ class BlockType(Enum):
     ORDERED = "ordered list"
 
 
-def every_line_starts_with(text, prefix):
-    lines = text.strip().split("\n")
-    return all(line and line.startswith(prefix) for line in lines)
+def every_line_starts_with(markdown, prefix):
+    lines = markdown.split("\n")
+    for line in lines:
+        if not line.strip():
+            continue
+        if not line.lstrip().startswith(prefix):
+            return False
+    return True
 
-def every_line_starts_with_number(text):
-    boolean = True
-    lines = text.strip().split("\n")
-    for i in range(len(lines)):
-        if not lines[i].startswith(f"{i+1}. "):
-            boolean = False
-    return boolean
+def every_line_starts_with_number(markdown):
+    lines = markdown.split("\n")
+    for line in lines:
+        if not line.strip():
+            continue
+        if not re.match(r"\s*\d+\.", line):
+            return False
+    return True
 
 def block_to_block_type(markdown):
-    if markdown.startswith("> "):
+    lines = markdown.split("\n")
+    non_empty = [l for l in lines if l.strip() != ""]
+    if not non_empty:
+        return BlockType.PARAGRAPH
+    first = non_empty[0].lstrip()
+
+    if first.startswith("> "):
         if every_line_starts_with(markdown, "> "):
             return BlockType.QUOTE
         else:
             return BlockType.PARAGRAPH
-    if markdown.startswith("- "):
+        
+    if first.startswith("- "):
         if every_line_starts_with(markdown, "- "):
             return BlockType.UNORDERED
         else:
             return BlockType.PARAGRAPH
-    if markdown.startswith("1. "):
+        
+    if re.match(r"\d+\. ", first):
         if every_line_starts_with_number(markdown):
             return BlockType.ORDERED
         else:
             return BlockType.PARAGRAPH
-    elif markdown.startswith(("# ", "## ", "### ", "#### ", "##### ", "###### ")):
+        
+    elif first.startswith(("# ", "## ", "### ", "#### ", "##### ", "###### ")):
         return BlockType.HEADING
+    
     elif markdown.startswith("```\n") and markdown.endswith("```"):
         return BlockType.CODE
+    
     else:
         return BlockType.PARAGRAPH
 
