@@ -57,6 +57,8 @@ def block_type_to_HTMLNode(block_type, block):
         for line in lines:
             if line.startswith("> "):
                 stripped_lines.append(line[2:])
+            elif line.startswith(">"):
+                stripped_lines.append(line[1:])
             else:
                 stripped_lines.append(line)
         text = "\n".join(stripped_lines)

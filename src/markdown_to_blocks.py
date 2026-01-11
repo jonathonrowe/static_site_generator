@@ -15,6 +15,8 @@ def every_line_starts_with(markdown, prefix):
     for line in lines:
         if not line.strip():
             continue
+        if line == ">":
+            continue
         if not line.lstrip().startswith(prefix):
             return False
     return True
@@ -63,11 +65,19 @@ def block_to_block_type(markdown):
         return BlockType.PARAGRAPH
 
 def markdown_to_blocks(markdown):
+    blocks = []
+    current_block_lines = []
     markdown = markdown.strip()
-    blocks = markdown.split("\n\n")
-    for block in blocks:
-        block = block.strip()
-        if block == "/n" or block == "":
-            blocks.remove(block)
+    lines = markdown.split("\n")
+    for line in lines:
+        if line.strip() == "":
+            if current_block_lines:
+                blocks.append("\n".join(current_block_lines))
+                current_block_lines = []
+        else:
+            current_block_lines.append(line)
+        
+    if current_block_lines:
+        blocks.append("\n".join(current_block_lines))
 
     return blocks
