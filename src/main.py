@@ -1,8 +1,8 @@
 from textnode import TextNode
+from copy_contents import copy_contents
 
 def main():
-    anchor_text = TextNode("This is some anchor text", "link", "https://boot.dev")
-    print(anchor_text)
+    copy_contents("static", "public")
 
 if __name__ == "__main__":
     main()
